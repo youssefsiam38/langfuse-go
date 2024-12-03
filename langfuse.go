@@ -19,6 +19,7 @@ type Langfuse struct {
 	flushInterval time.Duration
 	client        *api.Client
 	observer      *observer.Observer[model.IngestionEvent]
+	silent        bool
 }
 
 func New(ctx context.Context) *Langfuse {
@@ -27,22 +28,29 @@ func New(ctx context.Context) *Langfuse {
 	l := &Langfuse{
 		flushInterval: defaultFlushInterval,
 		client:        client,
-		observer: observer.NewObserver(
-			ctx,
-			func(ctx context.Context, events []model.IngestionEvent) {
-				err := ingest(ctx, client, events)
-				if err != nil {
-					fmt.Println(err)
-				}
-			},
-		),
 	}
+
+	// Pass l.silent explicitly to the observer
+	l.observer = observer.NewObserver(
+		ctx,
+		func(ctx context.Context, events []model.IngestionEvent) {
+			err := ingest(ctx, client, events)
+			if err != nil && !l.silent {
+				fmt.Println(err)
+			}
+		},
+	)
 
 	return l
 }
 
 func (l *Langfuse) WithFlushInterval(d time.Duration) *Langfuse {
 	l.flushInterval = d
+	return l
+}
+
+func (l *Langfuse) WithSilent(silent bool) *Langfuse {
+	l.silent = silent
 	return l
 }
 
