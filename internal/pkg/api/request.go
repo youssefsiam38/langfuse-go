@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/henomis/langfuse-go/model"
+	"github.com/youssefsiam38/langfuse-go/model"
 )
 
 const (
